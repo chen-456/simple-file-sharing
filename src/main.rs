@@ -1,4 +1,5 @@
 mod api;
+mod control;
 
 use actix_web::{middleware::Logger, App, HttpServer};
 
@@ -10,6 +11,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(Logger::default())
             .service(api::all_apis())
+            .route("/control", actix_web::web::get().to(control::websocket))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
     .bind(("localhost", 8080))?
