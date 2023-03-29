@@ -4,11 +4,21 @@ use anyhow::Context;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 
+use crate::listdir::DirEntry;
+
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
 enum Request {
     LoginPwd { username: String },
     Logout {},
+    ListDir { path: String },
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum Response {
+    Empty {},
+    DirList { entries: Vec<DirEntry> },
 }
 
 struct Session {
@@ -34,6 +44,12 @@ impl Session {
                 self.user_id = None;
                 Ok(Response::Empty {})
             }
+            Request::ListDir { path } => {
+                anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
+                Ok(Response::DirList {
+                    entries: crate::listdir::list_dir(&path).await?,
+                })
+            }
         }
     }
 }
@@ -43,12 +59,6 @@ struct JsonResponse {
     err: Option<String>,
     #[serde(flatten)]
     inner: Response,
-}
-
-#[derive(Serialize)]
-#[serde(untagged)]
-enum Response {
-    Empty {},
 }
 
 impl From<anyhow::Result<Response>> for JsonResponse {
