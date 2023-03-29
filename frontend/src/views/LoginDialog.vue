@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useUserStore, UserInfo } from '@/stores/user';
 import { ensureConnection } from '@/utils/control';
 
+const store = useUserStore();
 const visible = ref(true), busy = ref(false);
 const username = ref(''), password = ref('');
 
@@ -27,6 +29,7 @@ async function doLogin() {
       'username': username.value,
     });
     // Login successful
+    store.login(new UserInfo(username.value, password.value));
     visible.value = false;
     // Clear the form
     username.value = '';
