@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import FileListView from './FileListView.vue';
+import DownloadDialog from './DownloadDialog.vue';
 
 const route = useRoute();
 
@@ -22,6 +23,33 @@ const breadcrumbDisplay = computed(() => {
   }
   return result;
 });
+
+class DownloadTask {
+  id: number;
+  path: string;
+
+  constructor(id: number, path: string) {
+    this.id = id;
+    this.path = path;
+  }
+}
+
+const downloadTasks: Ref<DownloadTask[]> = ref([]), curDownloadId = ref(0);
+
+function startDownload(path: string) {
+  // console.log('Downloading', path);
+  const id = curDownloadId.value++;
+  downloadTasks.value.push(new DownloadTask(id, path));
+}
+
+function onDownloadFinish(id: number) {
+  const idx = downloadTasks.value.findIndex(item => item.id == id);
+  if (idx !== -1) {
+    downloadTasks.value.splice(idx, 1);
+  } else {
+    console.warn('Failed to remove download task', id);
+  }
+}
 </script>
 
 <template>
@@ -31,5 +59,7 @@ const breadcrumbDisplay = computed(() => {
     </template>
   </v-breadcrumbs>
 
-  <file-list-view :path="currentPath" />
+  <file-list-view :path="currentPath" @download="startDownload" />
+
+  <download-dialog v-for="task in downloadTasks" :key="task.id" :path="task.path" @finish="onDownloadFinish(task.id)" />
 </template>

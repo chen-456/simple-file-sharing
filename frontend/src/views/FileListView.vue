@@ -16,6 +16,9 @@ interface DirEntry {
 const props = defineProps<{
   path: string,
 }>();
+const emit = defineEmits<{
+  (event: 'download', path: string): void,
+}>();
 const curListing: Ref<DirEntry[] | undefined> = ref();
 
 function iconOf(dirEntry: DirEntry): string {
@@ -45,15 +48,16 @@ async function fetchDirEntries() {
 }
 
 function onNavigate(entry: DirEntry) {
-  // TODO: support file downloading
-  if (!entry.directory)
-    return;
-
   let newPath = props.path;
   if (newPath.length !== 0)
     newPath += '/';
   newPath += entry.name;
-  router.push('/?path=' + encodeURIComponent(newPath));
+
+  if (entry.directory) {
+    router.push('/?path=' + encodeURIComponent(newPath));
+  } else {
+    emit('download', newPath);
+  }
 }
 
 fetchDirEntries();
