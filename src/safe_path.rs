@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 const ILLEGAL_CHARS: &str = "\\/:*?\"<>|";
 const LENGTH_LIMIT: usize = 2 << 10; // 2 KiB
@@ -36,4 +36,8 @@ pub fn normalize_web_path(path: &str) -> anyhow::Result<PathBuf> {
         }
     }
     Ok(result)
+}
+
+pub fn normalize_web_path_as_file(path: &str) -> anyhow::Result<PathBuf> {
+    normalize_web_path(path).map(|path| Path::new("files").join(path))
 }

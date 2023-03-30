@@ -1,7 +1,4 @@
-use std::{
-    path::Path,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use actix_files::NamedFile;
 use actix_web::{
@@ -13,7 +10,7 @@ use actix_web::{
 use uuid::Uuid;
 
 use crate::{
-    safe_path::normalize_web_path,
+    safe_path::normalize_web_path_as_file,
     state::{AppState, DownloadInfo},
 };
 
@@ -60,7 +57,7 @@ pub async fn download(
 }
 
 pub async fn gen_download_uuid(web_path: &str, state: &Data<AppState>) -> anyhow::Result<String> {
-    let normalized = Path::new("files").join(normalize_web_path(web_path)?);
+    let normalized = normalize_web_path_as_file(web_path)?;
     let metadata = async_std::fs::metadata(&normalized).await?;
     if metadata.is_file() {
         let mut lock = state.downloads.lock().await;

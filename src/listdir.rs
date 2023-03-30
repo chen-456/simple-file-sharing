@@ -1,10 +1,8 @@
-use std::path::Path;
-
 use anyhow::Context;
 use futures_util::StreamExt;
 use serde::Serialize;
 
-use crate::safe_path::normalize_web_path;
+use crate::safe_path::normalize_web_path_as_file;
 
 #[derive(Serialize)]
 pub struct DirEntry {
@@ -14,7 +12,7 @@ pub struct DirEntry {
 }
 
 pub async fn list_dir(web_path: &str) -> anyhow::Result<Vec<DirEntry>> {
-    let normalized = Path::new("files").join(normalize_web_path(web_path)?);
+    let normalized = normalize_web_path_as_file(web_path)?;
     let mut readdir = async_std::fs::read_dir(normalized)
         .await
         .context("opendir")?;
