@@ -1,10 +1,10 @@
-use actix_web::{HttpRequest, HttpResponse};
+use actix_web::{web::Data, HttpRequest, HttpResponse};
 use actix_ws::{Message, MessageStream, Session as WsSession};
 use anyhow::Context;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 
-use crate::listdir::DirEntry;
+use crate::{listdir::DirEntry, state::AppState};
 
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
@@ -12,6 +12,7 @@ enum Request {
     LoginPwd { username: String },
     Logout {},
     ListDir { path: String },
+    Download { path: String },
 }
 
 #[derive(Serialize)]
@@ -19,6 +20,7 @@ enum Request {
 enum Response {
     Empty {},
     DirList { entries: Vec<DirEntry> },
+    DownloadLink { uuid: String },
 }
 
 struct Session {
@@ -30,7 +32,11 @@ impl Session {
         Session { user_id: None }
     }
 
-    pub async fn execute(&mut self, req: Request) -> anyhow::Result<Response> {
+    pub async fn execute(
+        &mut self,
+        req: Request,
+        state: &Data<AppState>,
+    ) -> anyhow::Result<Response> {
         match req {
             Request::LoginPwd { username } => {
                 anyhow::ensure!(self.user_id.is_none(), "already logged in");
@@ -48,6 +54,12 @@ impl Session {
                 anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
                 Ok(Response::DirList {
                     entries: crate::listdir::list_dir(&path).await?,
+                })
+            }
+            Request::Download { path } => {
+                anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
+                Ok(Response::DownloadLink {
+                    uuid: crate::api::download::gen_download_uuid(&path, state).await?,
                 })
             }
         }
@@ -76,14 +88,14 @@ impl From<anyhow::Result<Response>> for JsonResponse {
     }
 }
 
-async fn worker(mut ws_session: WsSession, mut msg_stream: MessageStream) {
+async fn worker(mut ws_session: WsSession, mut msg_stream: MessageStream, state: Data<AppState>) {
     let mut session = Session::new();
     while let Some(msg) = msg_stream.next().await {
         match msg {
             Ok(Message::Text(text)) => {
                 let result = serde_json::from_str(text.as_ref()).context("parse JSON");
                 let result = match result {
-                    Ok(req) => session.execute(req).await,
+                    Ok(req) => session.execute(req, &state).await,
                     Err(err) => Err(err),
                 };
                 if let Err(err) = &result {
@@ -113,8 +125,9 @@ async fn worker(mut ws_session: WsSession, mut msg_stream: MessageStream) {
 pub async fn websocket(
     req: HttpRequest,
     stream: actix_web::web::Payload,
+    state: Data<AppState>,
 ) -> actix_web::Result<HttpResponse> {
     let (res, session, msg_stream) = actix_ws::handle(&req, stream)?;
-    actix_web::rt::spawn(worker(session, msg_stream));
+    actix_web::rt::spawn(worker(session, msg_stream, state));
     Ok(res)
 }
