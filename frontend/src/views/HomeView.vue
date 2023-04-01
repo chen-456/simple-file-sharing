@@ -3,6 +3,8 @@ import { computed, ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import FileListView from './FileListView.vue';
 import DownloadDialog from './DownloadDialog.vue';
+import UploadDialog from './UploadDialog.vue';
+import { EventBus } from '@/utils/event_bus';
 
 const route = useRoute();
 
@@ -50,6 +52,18 @@ function onDownloadFinish(id: number) {
     console.warn('Failed to remove download task', id);
   }
 }
+
+const showUploadDialog = ref(false);
+
+function onUploadFile() {
+  showUploadDialog.value = true;
+}
+
+function onUploadFinish() {
+  showUploadDialog.value = false;
+}
+
+EventBus.on('new-file', onUploadFile);
 </script>
 
 <template>
@@ -62,4 +76,5 @@ function onDownloadFinish(id: number) {
   <file-list-view :path="currentPath" @download="startDownload" />
 
   <download-dialog v-for="task in downloadTasks" :key="task.id" :path="task.path" @finish="onDownloadFinish(task.id)" />
+  <upload-dialog v-if="showUploadDialog" :parentPath="currentPath" @finish="onUploadFinish" />
 </template>
