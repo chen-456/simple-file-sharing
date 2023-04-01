@@ -14,6 +14,7 @@ enum Request {
     ListDir { path: String },
     Download { path: String },
     Upload { path: String, size: u64 },
+    CreateDir { path: String },
 }
 
 #[derive(Serialize)]
@@ -68,6 +69,11 @@ impl Session {
                 Ok(Response::DownloadLink {
                     uuid: crate::api::upload::gen_upload_uuid(&path, size, state).await?,
                 })
+            }
+            Request::CreateDir { path } => {
+                anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
+                crate::file_ops::create_dir(&path).await?;
+                Ok(Response::Empty {})
             }
         }
     }

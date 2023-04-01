@@ -1,5 +1,6 @@
 mod api;
 mod control;
+mod file_ops;
 mod listdir;
 mod safe_path;
 mod state;
