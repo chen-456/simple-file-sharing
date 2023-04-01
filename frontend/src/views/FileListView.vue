@@ -3,6 +3,7 @@ import { ref, type Ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ensureConnection } from '@/utils/control';
 import { useUserStore } from '@/stores/user';
+import { EventBus } from '@/utils/event_bus';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -63,6 +64,7 @@ function onNavigate(entry: DirEntry) {
 fetchDirEntries();
 userStore.$subscribe(() => fetchDirEntries());
 watch(() => [props.path], () => fetchDirEntries());
+EventBus.on('files-changed', fetchDirEntries);
 </script>
 
 <template>

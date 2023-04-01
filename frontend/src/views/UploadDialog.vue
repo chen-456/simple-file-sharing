@@ -2,6 +2,7 @@
 import { ref, type Ref } from 'vue';
 import { useUploadsStore } from '@/stores/uploads';
 import { ensureConnection } from '@/utils/control';
+import { EventBus } from '@/utils/event_bus';
 import { FileUploader } from '@/utils/file_uploader';
 
 const props = defineProps<{
@@ -47,6 +48,7 @@ async function onUpload() {
       } else {
         // TODO: show "upload done"
         // TODO: delete current task from uploadsStore
+        EventBus.emit('files-changed');
         percentage.value = 1;
         onFinish();
       }

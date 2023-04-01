@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, type Ref } from 'vue';
 import { ensureConnection } from '@/utils/control';
+import { EventBus } from '@/utils/event_bus';
 
 const props = defineProps<{
   parentPath: string,
@@ -26,6 +27,7 @@ async function create() {
       'path': folderPath,
     });
     if (resp.err === null) {
+      EventBus.emit('files-changed');
       finish();
     } else {
       error.value = resp.err;
