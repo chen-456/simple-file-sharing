@@ -3,6 +3,7 @@ import { computed, ref, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import FileListView from './FileListView.vue';
 import DownloadDialog from './DownloadDialog.vue';
+import NewFolderDialog from './NewFolderDialog.vue';
 import UploadDialog from './UploadDialog.vue';
 import { EventBus } from '@/utils/event_bus';
 
@@ -53,7 +54,7 @@ function onDownloadFinish(id: number) {
   }
 }
 
-const showUploadDialog = ref(false);
+const showUploadDialog = ref(false), showNewFolderDialog = ref(false);
 
 function onUploadFile() {
   showUploadDialog.value = true;
@@ -63,7 +64,16 @@ function onUploadFinish() {
   showUploadDialog.value = false;
 }
 
+function onNewFolder() {
+  showNewFolderDialog.value = true;
+}
+
+function onNewFolderFinish() {
+  showNewFolderDialog.value = false;
+}
+
 EventBus.on('new-file', onUploadFile);
+EventBus.on('new-folder', onNewFolder);
 </script>
 
 <template>
@@ -77,4 +87,5 @@ EventBus.on('new-file', onUploadFile);
 
   <download-dialog v-for="task in downloadTasks" :key="task.id" :path="task.path" @finish="onDownloadFinish(task.id)" />
   <upload-dialog v-if="showUploadDialog" :parentPath="currentPath" @finish="onUploadFinish" />
+  <new-folder-dialog v-if="showNewFolderDialog" :parentPath="currentPath" @finish="onNewFolderFinish" />
 </template>
