@@ -13,6 +13,7 @@ enum Request {
     Logout {},
     ListDir { path: String },
     Download { path: String },
+    Upload { path: String, size: u64 },
 }
 
 #[derive(Serialize)]
@@ -60,6 +61,12 @@ impl Session {
                 anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
                 Ok(Response::DownloadLink {
                     uuid: crate::api::download::gen_download_uuid(&path, state).await?,
+                })
+            }
+            Request::Upload { path, size } => {
+                anyhow::ensure!(self.user_id.is_some(), "not logged in yet");
+                Ok(Response::DownloadLink {
+                    uuid: crate::api::upload::gen_upload_uuid(&path, size, state).await?,
                 })
             }
         }
