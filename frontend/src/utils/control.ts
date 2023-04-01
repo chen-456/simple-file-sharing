@@ -10,7 +10,7 @@ class ControlSocket {
             return Promise.resolve();
         return new Promise((resolve, reject) => {
             console.log('Connecting to control socket');
-            this.ws = new WebSocket('ws://localhost:8080/control');
+            this.ws = new WebSocket(import.meta.env.VITE_WS_BASE_URL + '/control');
             this.ws.onopen = () => {
                 this.ready = true;
                 resolve();

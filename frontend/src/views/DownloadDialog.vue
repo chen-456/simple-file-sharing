@@ -10,7 +10,7 @@ const emit = defineEmits<{
 }>();
 const visible = ref(true);
 const uuid: Ref<string | undefined> = ref(), error: Ref<string | undefined> = ref();
-const downloadLink = computed(() => 'http://localhost:8080/api/file/' + uuid.value);
+const downloadLink = computed(() => import.meta.env.VITE_API_BASE_URL + '/api/file/' + uuid.value);
 
 function finish() {
   // Control commands cannot be terminated, so we just ignore its results

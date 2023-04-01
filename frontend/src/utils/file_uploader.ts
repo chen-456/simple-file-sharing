@@ -28,7 +28,7 @@ export class FileUploader {
 
   start(): void {
     this.running = true;
-    this.socket = new WebSocket('ws://localhost:8080/api/uploads/' + this.uuid);
+    this.socket = new WebSocket(import.meta.env.VITE_WS_BASE_URL + '/api/uploads/' + this.uuid);
     this.socket.onopen = () => {
       this.startNextBlock();
     };
