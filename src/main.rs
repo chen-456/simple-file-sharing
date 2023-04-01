@@ -4,6 +4,7 @@ mod file_ops;
 mod listdir;
 mod safe_path;
 mod state;
+mod tls;
 
 use actix_web::{middleware::Logger, App, HttpServer};
 
@@ -21,7 +22,10 @@ async fn main() -> std::io::Result<()> {
             .route("/control", actix_web::web::get().to(control::websocket))
             .service(actix_files::Files::new("/", "public").index_file("index.html"))
     })
-    .bind(("localhost", 8080))?
+    .bind_rustls(
+        ("localhost", 8080),
+        tls::rustls_config().expect("create rustls configuration"),
+    )?
     .run()
     .await
 }
