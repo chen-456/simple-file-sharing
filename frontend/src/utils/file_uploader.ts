@@ -39,6 +39,7 @@ export class FileUploader {
           if (resp.cur_pos !== this.current) {
             console.warn('File position mismatch: local', this.current, 'remote', resp.cur_pos);
           }
+          this.eventEmitter.emit('progress');
           this.startNextBlock();
         } else {
           // Upload done
