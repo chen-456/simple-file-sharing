@@ -11,7 +11,7 @@ use actix_http::{
 use actix_web::{web, HttpRequest, HttpResponse};
 use tokio::sync::mpsc::channel;
 
-pub use actix_http::ws::{CloseCode, CloseReason, Message, ProtocolError};
+pub use actix_http::ws::{CloseCode, CloseReason, Item, Message, ProtocolError};
 
 mod fut;
 mod session;
