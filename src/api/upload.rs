@@ -6,7 +6,7 @@ use actix_web::{
     web::{Data, Path as WebPath},
     HttpRequest, HttpResponse, ResponseError,
 };
-use actix_ws::{Message, MessageStream, Session as WsSession};
+use actix_ws::{Item, Message, MessageStream, Session as WsSession};
 use anyhow::Context;
 use async_std::{
     fs::File,
@@ -104,7 +104,11 @@ async fn worker(file: File, size: u64, mut ws_session: WsSession, mut msg_stream
 
     while let Some(msg) = msg_stream.next().await {
         match msg {
-            Ok(Message::Binary(data)) => {
+            // Dirty fix: we assume all Continuation packets are caused by
+            // binary packets, and we do not track each packet's preceding
+            // packet.
+            // FIXME: better implementation
+            Ok(Message::Binary(data)) | Ok(Message::Continuation(Item::Last(data))) => {
                 let result = session.write_data(&data).await;
                 if let Err(err) = &result {
                     log::debug!("Failed to process incoming data: {err:#}");
@@ -115,6 +119,18 @@ async fn worker(file: File, size: u64, mut ws_session: WsSession, mut msg_stream
                 {
                     log::error!("Failed to send response to client: {err:#}");
                 }
+            }
+            // Dirty fix: we assume all Continuation packets are caused by
+            // binary packets, and we do not track each packet's preceding
+            // packet.
+            // FIXME: better implementation
+            Ok(Message::Continuation(Item::FirstBinary(data)))
+            | Ok(Message::Continuation(Item::Continue(data))) => {
+                let result = session.write_data(&data).await;
+                if let Err(err) = &result {
+                    log::debug!("Failed to process incoming data: {err:#}");
+                }
+                // Don't send a response now, since the packet hasn't ended yet
             }
             Ok(Message::Text(text)) => {
                 let result = serde_json::from_str(text.as_ref()).context("parse JSON");
@@ -235,6 +251,6 @@ pub async fn gen_upload_uuid(
         }
         anyhow::bail!("failed to allocate a UUID for this upload");
     } else {
-        anyhow::bail!("the path specified does not point to a file");
+        anyhow::bail!("the path specified already exists");
     }
 }
