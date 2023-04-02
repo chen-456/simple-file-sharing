@@ -27,6 +27,7 @@ async function doLogin() {
     await controlSocket.execute({
       'cmd': 'LoginPwd',
       'username': username.value,
+      'password': password.value,
     });
     // Login successful
     store.login(new UserInfo(username.value, password.value));
