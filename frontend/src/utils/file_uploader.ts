@@ -1,7 +1,7 @@
 import { TinyEmitter } from 'tiny-emitter';
 
 export class FileUploader {
-  private readonly BLOCK_SIZE = (1 << 20);
+  private readonly BLOCK_SIZE = (256 << 10);
 
   private file: File;
   private uuid: string;
