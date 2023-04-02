@@ -39,10 +39,6 @@ function showUserInfo() {
         <v-icon icon="mdi-folder-plus" />
         <v-tooltip activator="parent" location="bottom">New folder</v-tooltip>
       </v-btn>
-      <v-btn icon>
-        <v-icon icon="mdi-upload" />
-        <v-tooltip activator="parent" location="bottom">Uploads</v-tooltip>
-      </v-btn>
       <v-btn icon @click="showUserInfo">
         <v-icon icon="mdi-account" />
         <v-tooltip activator="parent" location="bottom">My account</v-tooltip>
