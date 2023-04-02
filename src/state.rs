@@ -4,6 +4,7 @@ use async_std::sync::Mutex;
 use uuid::Uuid;
 
 pub struct AppState {
+    pub db: crate::db::DbPool,
     pub downloads: Mutex<HashMap<Uuid, DownloadInfo>>,
     pub uploads: Mutex<HashMap<Uuid, UploadInfo>>,
 }
@@ -22,6 +23,7 @@ pub struct UploadInfo {
 impl AppState {
     pub fn new() -> AppState {
         AppState {
+            db: crate::db::connect(),
             downloads: Mutex::new(HashMap::new()),
             uploads: Mutex::new(HashMap::new()),
         }

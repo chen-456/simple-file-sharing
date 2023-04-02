@@ -9,7 +9,8 @@ use crate::{listdir::DirEntry, state::AppState};
 #[derive(Deserialize)]
 #[serde(tag = "cmd")]
 enum Request {
-    LoginPwd { username: String },
+    LoginPwd { username: String, password: String },
+    RegisterPwd { username: String, password: String },
     Logout {},
     ListDir { path: String },
     Download { path: String },
@@ -26,7 +27,7 @@ enum Response {
 }
 
 struct Session {
-    user_id: Option<u32>,
+    user_id: Option<i32>,
 }
 
 impl Session {
@@ -40,10 +41,24 @@ impl Session {
         state: &Data<AppState>,
     ) -> anyhow::Result<Response> {
         match req {
-            Request::LoginPwd { username } => {
+            Request::LoginPwd { username, password } => {
                 anyhow::ensure!(self.user_id.is_none(), "already logged in");
+
+                let mut db = state.db.get().context("obtain database connection")?;
+                let user_id = crate::user::login(&username, &password, &mut db)?;
+
                 log::info!("User {username:?} logged in");
-                self.user_id = Some(1);
+                self.user_id = Some(user_id);
+                Ok(Response::Empty {})
+            }
+            Request::RegisterPwd { username, password } => {
+                anyhow::ensure!(self.user_id.is_none(), "already logged in");
+
+                let mut db = state.db.get().context("obtain database connection")?;
+                let user_id = crate::user::register(&username, &password, &mut db)?;
+
+                log::info!("User {username:?} registered and logged in");
+                self.user_id = Some(user_id);
                 Ok(Response::Empty {})
             }
             Request::Logout {} => {

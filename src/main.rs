@@ -1,10 +1,14 @@
 mod api;
 mod control;
+mod db;
 mod file_ops;
 mod listdir;
+mod models;
 mod safe_path;
+mod schema;
 mod state;
 mod tls;
+mod user;
 
 use actix_web::{middleware::Logger, App, HttpServer};
 
