@@ -45,7 +45,7 @@ impl StreamingBody {
             session_rx,
             messages: VecDeque::new(),
             buf: BytesMut::new(),
-            codec: Codec::new(),
+            codec: Codec::new().max_size(2 << 20),
             closing: false,
         }
     }
@@ -57,7 +57,7 @@ impl MessageStream {
             payload,
             messages: VecDeque::new(),
             buf: BytesMut::new(),
-            codec: Codec::new(),
+            codec: Codec::new().max_size(2 << 20),
             closing: false,
         }
     }
